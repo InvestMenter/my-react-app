@@ -1,0 +1,135 @@
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+const port = 3001;
+
+// CORS configuration
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://localhost:3000',
+    /https:\/\/.*\.github\.dev$/,
+    /https:\/\/.*\.app\.github\.dev$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Test endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Investor Portal Backend is running!',
+    timestamp: new Date().toISOString(),
+    status: 'OK'
+  });
+});
+
+// In-memory storage for demo
+let investors = [
+  {
+    id: 'test-investor-1',
+    name: 'Test Investor',
+    email: 'investor1@test.com',
+    phone: '+1234567890',
+    password: 'test123'
+  }
+];
+
+// API endpoints
+app.post('/api/createInvestor', (req, res) => {
+  try {
+    console.log('Creating investor:', req.body);
+    const { data } = req.body;
+    
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        error: 'No data provided'
+      });
+    }
+
+    // Check if exists
+    const existing = investors.find(inv => inv.email === data.email);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        error: 'An account with this email already exists'
+      });
+    }
+
+    // Create new investor
+    const newInvestor = {
+      id: Date.now().toString(),
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      password: data.password
+    };
+
+    investors.push(newInvestor);
+
+    res.json({
+      success: true,
+      data: {
+        id: newInvestor.id,
+        name: newInvestor.name,
+        email: newInvestor.email,
+        phone: newInvestor.phone
+      }
+    });
+  } catch (error) {
+    console.error('Error creating investor:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/findInvestorByEmail', (req, res) => {
+  try {
+    const { email } = req.body;
+    const investor = investors.find(inv => inv.email === email);
+    
+    res.json({
+      success: true,
+      data: investor || null
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/createUnit', (req, res) => {
+  res.json({ success: true, data: { id: Date.now().toString() } });
+});
+
+app.post('/api/createDocument', (req, res) => {
+  res.json({ success: true, data: { id: Date.now().toString() } });
+});
+
+app.post('/api/getInvestorData', (req, res) => {
+  res.json({
+    success: true,
+    data: { units: [], documents: [], payments: [] }
+  });
+});
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`);
+  console.log(`Access at: http://localhost:${port}`);
+});
