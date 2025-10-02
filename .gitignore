@@ -71,8 +71,23 @@ web_modules/
 !.env.example
 
 # Google Cloud credentials
-google-credentials.json.json
-*.json.json
+google-credentials.json
+credentials.json
+config/google-credentials.json
+config/credentials.json
+Backend/config/credentials.json
+Backend/config/google-credentials.json
+
+# Data files with personal information
+data/*.json
+data/*.backup
+data/investors.json
+data/sessions.json
+data/units.json
+
+# Uploaded documents
+uploads/
+Backend/uploads/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
